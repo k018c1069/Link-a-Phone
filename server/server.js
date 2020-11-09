@@ -1,7 +1,9 @@
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 3000
-var admin = require("firebase-admin");
+const functions = require('firebase-functions')
+const admin = require('firebase-admin')
+
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
@@ -15,6 +17,8 @@ if (!process.env.PORT) {
 }
 
 admin.initializeApp(settings)
+const fireStore = admin.firestore()
+const LineAuthWaiting = fireStore.collection('LineAuthWaiting')
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
@@ -40,6 +44,15 @@ app.post('/', (req, res) =>{
     })
   }
   
+})
+
+app.get('/line', () => {
+  const LineData = LineAuthWaiting.where(
+    'authCode', '==', '1604335208545'
+  ).get()
+  LineData.then(e => {
+    console.log(e.docs[0]);
+  })
 })
 
 app.listen(port, () =>{
