@@ -3,6 +3,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const functions = require('firebase-functions')
 const admin = require('firebase-admin')
+const { user } = require('firebase-functions/lib/providers/auth')
 
 
 app.use(express.json())
@@ -20,6 +21,8 @@ admin.initializeApp(settings)
 const fireStore = admin.firestore()
 const LineAuthWaiting = fireStore.collection('LineAuthWaiting')
 const UserDataRef = fireStore.collection('UserData')
+const PostLog = fireStore.collection('PostLog')
+
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*")
@@ -38,6 +41,17 @@ const verifyUser = (token) => {
     })
   })
 }
+
+app.post('/latest',(req, res) => {
+  verifyUser(req.body.token).then(async userID => {
+    const userData = await UserDataRef.doc(userID).data()
+    const deviceData = await PostData.doc(userData.DeviceID).data()
+    res.json({
+      length: deviceData.size
+    })
+  })
+})
+
 
 app.post('/line', (req, res) => {
   verifyUser(req.body.token).then(userID => {
