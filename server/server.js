@@ -44,10 +44,15 @@ const verifyUser = (token) => {
 
 app.post('/latest',(req, res) => {
   verifyUser(req.body.token).then(async userID => {
-    const userData = await UserDataRef.doc(userID).data()
-    const deviceData = await PostData.doc(userData.DeviceID).data()
+    const userDataRaw = await UserDataRef.doc(userID).get()
+    const userData = userDataRaw.data()
+    const deviceDataRaw = await PostLog.doc(userData.DeviceID)
+    const deviceLogsRaw =  await deviceDataRaw.collection('logs').orderBy('time','desc').limit(1).get()
+    const deviceLog = deviceLogsRaw.docs[0].data()
+    const time = new Date(deviceLog.time.toMillis())
     res.json({
-      length: deviceData.size
+      postName: userData.DeviceID,
+      time: time.toString()
     })
   })
 })
